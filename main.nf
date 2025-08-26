@@ -31,7 +31,7 @@ workflow {
 
     // get hic read urls for the sample of interest
 
-    if ( params.hic_data == true ) {
+    if ( params.hic_data ) {
         hic_samples = all_samples
             .filter { sample -> sample.sample_id == "${params.sample_id}" }
             .filter { sample -> sample.data_type == "HiC" }
@@ -93,7 +93,7 @@ workflow {
 
     // hic file - if empty because no hic files, point at empty dummy file
     if (!params.hic_data) {
-        hic_config_ch = file("${projectDir}/data/dummy_hic")
+        hic_config_ch = file("${projectDir}/assets/dummy_hic")
     }
 
     //hic_config_ch.view()
