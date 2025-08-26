@@ -1,5 +1,6 @@
 process CREATE_CONFIG_FILE {
-    publishDir "${params.outdir}/config/config_file.yaml"
+    publishDir "${params.outdir}/config", mode: 'copy'
+    publishDir "results/config", mode: 'copy'
 
     input:
     tuple val(busco_lineage), val(Genus_species)

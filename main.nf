@@ -1,7 +1,7 @@
 include { DOWNLOAD_FILE as DOWNLOAD_FILE_PACBIO} from './modules/download_file.nf'
 include { DOWNLOAD_FILE as DOWNLOAD_FILE_HIC} from './modules/download_file.nf'
 
-include { HIFIADAPTERFILT } from './modules/hifiadaperfilt.nf'
+include { HIFIADAPTERFILT } from './modules/hifiadapterfilt.nf'
 
 include { READ_LENGTH_SUMMARY } from './modules/read_length_summary.nf'
 include { PLOT_READ_LENGTHS } from './modules/plot_read_length_summary.nf'
@@ -51,13 +51,13 @@ workflow {
     // download the pacbio files
     DOWNLOAD_FILE_PACBIO(pacbio_samples)
 
-    if (params.hifiadaperfilt) {
+    if (params.hifiadapterfilt) {
         HIFIADAPTERFILT(DOWNLOAD_FILE_PACBIO.out.file)
     }
 
     if (params.read_length_summary) {
 
-        if (params.hifiadaperfilt) {
+        if (params.hifiadapterfilt) {
             read_length_summary_ch = HIFIADAPTERFILT.out.filt_fastq_gz
         } else {
             read_length_summary_ch = DOWNLOAD_FILE_PACBIO.out.file
@@ -70,7 +70,7 @@ workflow {
     PLOT_READ_LENGTHS(plot_read_lengths_ch)
     }
 
-    if (params.hifiadaperfilt) {
+    if (params.hifiadapterfilt) {
         concat_and_zip_ch = HIFIADAPTERFILT.out.filt_fastq_gz.collect()
     } else {
         concat_and_zip_ch = DOWNLOAD_FILE_PACBIO.out.file.collect()

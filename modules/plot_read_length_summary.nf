@@ -1,5 +1,5 @@
 process PLOT_READ_LENGTHS {
-    publishDir = "${params.outdir}/qc/read_length_distributions"
+    publishDir = "${params.outdir}/qc/read_length_distributions", mode: 'copy'
 
     input:
     //path fasta_gz
@@ -7,9 +7,6 @@ process PLOT_READ_LENGTHS {
 
     output:
     path "*_read_length_distributions.pdf", emit: pdf
-
-    when:
-    params.read_length_summary == true
 
     script:
     """

@@ -1,7 +1,7 @@
 process HIFIADAPTERFILT {
-    publishDir "${params.outdir}/qc/hifiadapterfilt", pattern: "${basename}.blocklist"
-    publishDir "${params.outdir}/qc/hifiadapterfilt", pattern: "${basename}.contaminant.blastout"
-    publishDir "${params.outdir}/qc/hifiadapterfilt", pattern: "${basename}.stats"
+    publishDir "${params.outdir}/qc/hifiadapterfilt", mode: 'copy', pattern: "${basename}.blocklist"
+    publishDir "${params.outdir}/qc/hifiadapterfilt", mode: 'copy',  pattern: "${basename}.contaminant.blastout"
+    publishDir "${params.outdir}/qc/hifiadapterfilt", mode: 'copy',  pattern: "${basename}.stats"
 
     input:
     path file
@@ -12,11 +12,8 @@ process HIFIADAPTERFILT {
     path "${basename}.filt.fastq.gz", emit: filt_fastq_gz
     path "${basename}.stats", emit: stats
 
-    when:
-    params.hifiadapterfilt == true
-
     script:
-    basename = file.getBaseName(2)
+    basename = file.getBaseName(1)
     """
     export PATH=$PATH:${params.hifiadapterfilt_path}:${params.hifiadapterfilt_path}/DB
     echo $PATH

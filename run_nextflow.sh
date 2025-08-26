@@ -21,12 +21,14 @@ fi
 export NXF_APPTAINER_CACHEDIR="${SINGULARITY_CACHEDIR}/library"
 export NXF_SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR}/library"
 
-# install hifiadapterfilt
-#singularity run https://depot.galaxyproject.org/singularity/hifiadapterfilt:3.0.0--hdfd78af_0
+# sample to run
+SAMPLE_ID="yalmyTest460406"
 
-# install seqtk
-#singularity run https://depot.galaxyproject.org/singularity/seqtk:1.4--h577a1d6_3
+# where to put the results files
+#OUTPUT_DIRECTORY="s3://pawsey1132.amy.testing/${SAMPLE_ID}/results/sanger_tol"
+OUTPUT_DIRECTORY="results"
 
 # run nextflow
 bin/nextflow run main.nf -profile pawsey --BPA_API_TOKEN ${BPA_API_TOKEN} \
+    --outdir ${OUTPUT_DIRECTORY} --sample_id ${SAMPLE_ID} \
     --hic_data true --hifiadapterfilt false --read_length_summary false
