@@ -1,3 +1,78 @@
+def help_file() {
+    log.info """
+    #######################################################################################
+    ######################### THIS WILL EVENTUALLY BE A HELP FILE #########################
+    #######################################################################################
+
+        --outdir <PATH/TO/OUTPUT/DIRECTORY>
+                File path to where results should be stored
+
+        --hic_data
+                Does the sample_id have corresponding HiC data, or not?
+                Default is 'true'
+
+        --samplesheet
+                Path to the samplesheet containing information on samples to be 
+                downloaded. This will definitely be updated soon, but for now it's 
+                a .csv with the following column headers:
+                    sample_id       Sample ID on which data in the samplesheet will be 
+                                        filtered. Should correspond to an individual.
+
+                    data_type       The type of data within each file. Currently 
+                                        supported types: 'PacBio', 'HiC'
+
+                    file_name       The name of the file to be downloaded
+
+                    url             The URL from which to download the file
+
+                    busco_lineage   The busco lineage to be used with the sample in 
+                                        downstream analyses
+
+                    Genus_species   Binomial name of the sample specimen
+
+        --sample_id SAMPLE_ID
+                Name of the sample to be analysed. Input samplesheet will be filtered
+                so only files corresponding to the sample id will be processed
+
+        --hifiadapterfilt
+                Option to run hifiadapterfilt on input PacBio files to remove any 
+                remaining adapters.
+                Default is 'false'
+
+        --hifiadapterfilt_path <PATH/TO/HIFIADAPTERFILT/SOFTWARE>
+                    >>>> TO FIX WHEN I FIGURE OUT HOW TO CONTAINERS BETTER <<<<
+                Path to downloaded hifiadapterfilt program. This program is not an
+                included module on Pawsey and if I use a container it falls over 
+                because it can't access bamtools or blast dependencies. 
+                Default is '/software/projects/PROJECTNAME/USERNAME/HiFiAdapterFilt'
+
+        --hifiadapterfilt_l <INT>
+                Default is 25
+
+        --hifiadapterfilt_m <INT>  
+                Default is 97
+
+        --read_length_summary
+                Option to generate a histogram of read lengths for input PacBio files
+                Default is 'false'
+
+        --R <MODULE_VERSION>
+                Version of R to be invoked by 'module load' in 'plot_read_length_summary'
+                Default is r/4.4.1
+
+        --bamtools <MODULE_VERSION>
+                Version of bamtools to be invoked by 'module load' in 'hifiadapterfilt'
+                Default is 'bamtools/2.5.2--hd03093a_0'
+                
+        --blast <MODULE_VERSION>
+                Version of blast to be invoked by 'module load' in 'hifiadapterfilt'
+                Default is 'blast/2.12.0--pl5262h3289130_0'
+        
+    #######################################################################################
+    """.stripIndent()
+}
+
+
 include { DOWNLOAD_FILE as DOWNLOAD_FILE_PACBIO} from './modules/download_file.nf'
 include { DOWNLOAD_FILE as DOWNLOAD_FILE_HIC} from './modules/download_file.nf'
 
@@ -11,6 +86,11 @@ include { CONCAT_AND_ZIP } from './modules/concat_and_zip.nf'
 include { CREATE_CONFIG_FILE } from './modules/create_config_file.nf'
 
 workflow {
+
+    if (params.remove('help')) {
+        help_file()
+        exit 0
+    }
 
     // ~~~ getting lists of samples ~~~
 
