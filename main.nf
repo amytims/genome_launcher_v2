@@ -83,7 +83,7 @@ include { DOWNLOAD_FILE as DOWNLOAD_FILE_HIC} from './modules/download_file.nf'
 include { HIFIADAPTERFILT } from './modules/hifiadapterfilt.nf'
 
 include { READ_LENGTH_SUMMARY } from './modules/read_length_summary.nf'
-include { PLOT_READ_LENGTHS }   from './modules/plot_read_length_summary.nf'
+include { PLOT_READ_LENGTHS } from './modules/plot_read_length_summary.nf'
 
 include { CONCAT_AND_ZIP } from './modules/concat_and_zip.nf'
 
