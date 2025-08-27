@@ -11,7 +11,10 @@ def help_file() {
                 Does the sample_id have corresponding HiC data, or not?
                 Default is 'true'
 
-        --samplesheet
+        --jsonl <PATH/TO/JSONL/FILE>
+                Path to the .jsonl file outputted by the data mapper
+
+        --samplesheet [DEPRECATE OR LEAVE IN FOR FUTURE?]
                 Path to the samplesheet containing information on samples to be 
                 downloaded. This will definitely be updated soon, but for now it's 
                 a .csv with the following column headers:
@@ -72,6 +75,7 @@ def help_file() {
     """.stripIndent()
 }
 
+include { JSON_TO_TSV } from './modules/json_to_tsv.nf'
 
 include { DOWNLOAD_FILE as DOWNLOAD_FILE_PACBIO} from './modules/download_file.nf'
 include { DOWNLOAD_FILE as DOWNLOAD_FILE_HIC} from './modules/download_file.nf'
@@ -94,16 +98,22 @@ workflow {
 
     // ~~~ getting lists of samples ~~~
 
-    // read in all the rows of the sample sheet
-    all_samples = Channel.fromPath(params.samplesheet)
-        .splitCsv(header:true)
+    // set up channel for input jsonl file
+    json_to_tsv_ch = Channel.fromPath(params.jsonl)
+
+    // parse it to tsv format for legibility
+    JSON_TO_TSV(json_to_tsv_ch)
+
+    // read in all the rows of the new tsv file
+    all_samples = JSON_TO_TSV.out.tsv
+        .splitCsv(header:true, sep:'\t')
         //.view()
 
     // get pacbio read urls for sample of interest
     pacbio_samples = all_samples
-        .filter { sample -> sample.sample_id == "${params.sample_id}" }
-        .filter { sample -> sample.data_type == "PacBio" }
-        .map {sample -> [sample.sample_id, sample.file_name, sample.url] }
+        .filter { sample -> sample.organism_grouping_key == "${params.sample_id}" }
+        .filter { sample -> sample.data_type == "WGS" }
+        .map {sample -> [sample.organism_grouping_key, sample.file_name, sample.url] }
 
     // if no PacBio Samples are found, throw an error and exit the process
     pacbio_samples.ifEmpty { error("Error: No PacBio samples corresponding to sample id \"${params.sample_id}\" could be found.") }
@@ -113,9 +123,9 @@ workflow {
 
     if ( params.hic_data ) {
         hic_samples = all_samples
-            .filter { sample -> sample.sample_id == "${params.sample_id}" }
-            .filter { sample -> sample.data_type == "HiC" }
-            .map { sample -> [sample.sample_id, sample.file_name, sample.url] }
+            .filter { sample -> sample.organism_grouping_key == "${params.sample_id}" }
+            .filter { sample -> sample.data_type == "Hi-C" }
+            .map { sample -> [sample.organism_grouping_key, sample.file_name, sample.url] }
 
         hic_samples.ifEmpty { error(
             """
@@ -166,10 +176,10 @@ workflow {
 
     // busco lineage, etc
     other_info = all_samples
-         .filter { sample -> sample.sample_id == "${params.sample_id}" }
+         .filter { sample -> sample.organism_grouping_key == "${params.sample_id}" }
          .map {sample -> [sample.busco_lineage, sample.Genus_species] }
          .unique()
-         .view()
+         //.view()
 
     // hic file - if empty because no hic files, point at empty dummy file
     if (!params.hic_data) {

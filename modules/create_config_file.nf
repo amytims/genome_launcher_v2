@@ -25,7 +25,7 @@ fi
 echo "hic_motif: GATC,GANTC,CTNAG,TTAA" >> config_file.yaml
 echo "hic_aligner: bwamem2" >> config_file.yaml
 echo "busco:" >> config_file.yaml
-echo "  lineage: ${busco_lineage}" >> config_file.yaml
+echo "  lineage: ${busco_lineage}_odb10" >> config_file.yaml
 echo "mito:" >> config_file.yaml
 echo "  species: ${Genus_species}" >> config_file.yaml
 echo "  min_length: 15000" >> config_file.yaml
