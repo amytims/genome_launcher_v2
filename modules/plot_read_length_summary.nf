@@ -1,8 +1,7 @@
 process PLOT_READ_LENGTHS {
-    publishDir = "${params.outdir}/qc/read_length_distributions", mode: 'copy'
+    publishDir "${params.outdir}/qc/read_length_distributions", mode: 'copy'
 
     input:
-    //path fasta_gz
     path "*"
 
     output:
