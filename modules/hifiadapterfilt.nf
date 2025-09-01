@@ -15,12 +15,6 @@ process HIFIADAPTERFILT {
     script:
     basename = file.getBaseName(1)
     """
-    export PATH=$PATH:${params.hifiadapterfilt_path}:${params.hifiadapterfilt_path}/DB
-    echo $PATH
-
-    module load ${params.bamtools}
-    module load ${params.blast}
-
     hifiadapterfilt.sh -p ${basename} -l ${params.hifiadapterfilt_l} -m ${params.hifiadapterfilt_m} -t ${task.cpus}
     """
 }

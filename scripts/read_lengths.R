@@ -42,6 +42,6 @@ pdf(paste0(args[2], "_read_length_distributions.pdf"), height=6, width=9)
     }
 
     text(pos=3, x=0.5*xmax, y=1*ymax, cex=0.7, paste("total reads:", length(r$V1), "   mean length:", round(mean(r$V1),0), "   median length:", median(r$V1)))
-    rect(xleft=0.67*xmax,xright=1.35*xmax,ybot=(0.76-(0.15*(i-1)))*ymax, ytop=0.89*ymax)
+    rect(xleft=0.67*xmax,xright=1.35*xmax,ybot=(0.76-(0.15*(nfiles-1)))*ymax, ytop=0.89*ymax)
     
 dev.off()

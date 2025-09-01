@@ -24,7 +24,7 @@ export NXF_APPTAINER_CACHEDIR="${SINGULARITY_CACHEDIR}/library"
 export NXF_SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR}/library"
 
 # sample to run
-SAMPLE_ID="Galaxias_aequipinnis_1527629"
+SAMPLE_ID="Nematalosa_erebi_316163"
 
 # where to put the results files
 #OUTPUT_DIRECTORY="s3://pawsey1132.amy.testing/${SAMPLE_ID}/results/sanger_tol"
@@ -33,5 +33,5 @@ OUTPUT_DIRECTORY="results_${SAMPLE_ID}"
 # run nextflow
 bin/nextflow run main.nf -profile pawsey --BPA_API_TOKEN ${BPA_API_TOKEN} \
     --outdir ${OUTPUT_DIRECTORY} --sample_id ${SAMPLE_ID} \
-    --hic_data false --hifiadapterfilt true --read_length_summary true \
+    --hic_data true --hifiadapterfilt true --read_length_summary true \
     --jsonl /home/atims/data_mapper_output

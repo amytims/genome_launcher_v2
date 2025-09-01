@@ -112,7 +112,8 @@ workflow {
     // get pacbio read urls for sample of interest
     pacbio_samples = all_samples
         .filter { sample -> sample.organism_grouping_key == "${params.sample_id}" }
-        .filter { sample -> sample.data_type == "WGS" }
+        .filter { sample -> sample.library_strategy == "WGS" }
+        .filter { sample -> sample.platform == "PACBIO_SMRT" }
         .map {sample -> [sample.organism_grouping_key, sample.file_name, sample.url] }
 
     // if no PacBio Samples are found, throw an error and exit the process
@@ -124,7 +125,7 @@ workflow {
     if ( params.hic_data ) {
         hic_samples = all_samples
             .filter { sample -> sample.organism_grouping_key == "${params.sample_id}" }
-            .filter { sample -> sample.data_type == "Hi-C" }
+            .filter { sample -> sample.library_strategy == "Hi-C" }
             .map { sample -> [sample.organism_grouping_key, sample.file_name, sample.url] }
 
         hic_samples.ifEmpty { error(
@@ -168,6 +169,19 @@ workflow {
 
     CONCAT_AND_ZIP(concat_and_zip_ch)
 
+
+    // ~~~ HI-C READ PROCESSING ~~~
+
+    // download the pacbio files
+    DOWNLOAD_FILE_HIC(hic_samples)
+    //DOWNLOAD_FILE_HIC.out.file.collect.view()
+
+    hic_concat_ch = DOWNLOAD_FILE_HIC.out.file.collect()
+    //hic_concat_ch.view()
+
+    CONCAT_HIC_READS(hic_concat_ch)
+ 
+
     // ~~~ set up input channels for config file ~~~
 
     // pacbio samples file
@@ -184,6 +198,8 @@ workflow {
     // hic file - if empty because no hic files, point at empty dummy file
     if (!params.hic_data) {
         hic_config_ch = file("${projectDir}/assets/dummy_hic")
+    } else {
+        hic_config_ch = CONCAT_HIC_READS.out.cram
     }
 
     //hic_config_ch.view()
