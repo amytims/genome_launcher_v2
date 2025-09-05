@@ -18,7 +18,7 @@ echo "    reads:" >> config_file.yaml
 echo "        - reads: ${params.outdir}/reads/hifi/${filtered_pacbio}" >> config_file.yaml
 echo "  HiC:" >> config_file.yaml
 echo "    reads:" >> config_file.yaml
-if [! -v ${hic}]
+if [ "${hic}" != "${projectDir}/assets/dummy_hic" ]
 then
 echo "        - reads: ${params.outdir}/reads/hic/${hic}" >> config_file.yaml
 fi

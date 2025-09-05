@@ -15,6 +15,6 @@ process HIFIADAPTERFILT {
     script:
     basename = file.getBaseName(1)
     """
-    hifiadapterfilt.sh -p ${basename} -l ${params.hifiadapterfilt_l} -m ${params.hifiadapterfilt_m} -t ${task.cpus}
+    hifiadapterfilt.sh -l ${params.hifiadapterfilt_l} -m ${params.hifiadapterfilt_m} -t ${task.cpus}
     """
 }

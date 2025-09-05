@@ -15,20 +15,20 @@ def help_file() {
                 Path to the .jsonl file outputted by the data mapper
 
         --samplesheet [DEPRECATE OR LEAVE IN FOR FUTURE?]
-                Path to the samplesheet containing information on samples to be 
-                downloaded. This will definitely be updated soon, but for now it's 
+                Path to the samplesheet containing information on samples to be
+                downloaded. This will definitely be updated soon, but for now it's
                 a .csv with the following column headers:
-                    sample_id       Sample ID on which data in the samplesheet will be 
+                    sample_id       Sample ID on which data in the samplesheet will be
                                         filtered. Should correspond to an individual.
 
-                    data_type       The type of data within each file. Currently 
+                    data_type       The type of data within each file. Currently
                                         supported types: 'PacBio', 'HiC'
 
                     file_name       The name of the file to be downloaded
 
                     url             The URL from which to download the file
 
-                    busco_lineage   The busco lineage to be used with the sample in 
+                    busco_lineage   The busco lineage to be used with the sample in
                                         downstream analyses
 
                     Genus_species   Binomial name of the sample specimen
@@ -38,21 +38,21 @@ def help_file() {
                 so only files corresponding to the sample id will be processed
 
         --hifiadapterfilt
-                Option to run hifiadapterfilt on input PacBio files to remove any 
+                Option to run hifiadapterfilt on input PacBio files to remove any
                 remaining adapters.
                 Default is 'false'
 
         --hifiadapterfilt_path <PATH/TO/HIFIADAPTERFILT/SOFTWARE>
                     >>>> TO FIX WHEN I FIGURE OUT HOW TO CONTAINERS BETTER <<<<
                 Path to downloaded hifiadapterfilt program. This program is not an
-                included module on Pawsey and if I use a container it falls over 
-                because it can't access bamtools or blast dependencies. 
+                included module on Pawsey and if I use a container it falls over
+                because it can't access bamtools or blast dependencies.
                 Default is '/software/projects/PROJECTNAME/USERNAME/HiFiAdapterFilt'
 
         --hifiadapterfilt_l <INT>
                 Default is 25
 
-        --hifiadapterfilt_m <INT>  
+        --hifiadapterfilt_m <INT>
                 Default is 97
 
         --read_length_summary
@@ -86,6 +86,7 @@ include { READ_LENGTH_SUMMARY } from './modules/read_length_summary.nf'
 include { PLOT_READ_LENGTHS } from './modules/plot_read_length_summary.nf'
 
 include { CONCAT_AND_ZIP } from './modules/concat_and_zip.nf'
+include { CONCAT_HIC_READS } from './modules/concat_hic_reads.nf'
 
 include { CREATE_CONFIG_FILE } from './modules/create_config_file.nf'
 
