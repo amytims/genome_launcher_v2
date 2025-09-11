@@ -115,7 +115,7 @@ workflow {
         .filter { sample -> sample.organism_grouping_key == "${params.sample_id}" }
         .filter { sample -> sample.library_strategy == "WGS" }
         .filter { sample -> sample.platform == "PACBIO_SMRT" }
-        .map {sample -> [sample.organism_grouping_key, sample.file_name, sample.url] }
+        .map {sample -> [sample.organism_grouping_key, sample.file_name, sample.url, sample.file_checksum] }
 
     // if no PacBio Samples are found, throw an error and exit the process
     pacbio_samples.ifEmpty { error("Error: No PacBio samples corresponding to sample id \"${params.sample_id}\" could be found.") }
@@ -155,11 +155,11 @@ workflow {
             read_length_summary_ch = DOWNLOAD_FILE_PACBIO.out.file
         }
 
-    READ_LENGTH_SUMMARY(read_length_summary_ch)
+        READ_LENGTH_SUMMARY(read_length_summary_ch)
 
-    plot_read_lengths_ch = READ_LENGTH_SUMMARY.out.read_lengths.collect()
+        plot_read_lengths_ch = READ_LENGTH_SUMMARY.out.read_lengths.collect()
 
-    PLOT_READ_LENGTHS(plot_read_lengths_ch)
+        PLOT_READ_LENGTHS(plot_read_lengths_ch)
     }
 
     if (params.hifiadapterfilt) {
