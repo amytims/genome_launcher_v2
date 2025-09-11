@@ -1,5 +1,5 @@
 process JSON_TO_TSV {
-    publishDir = "${params.outdir}"
+    //publishDir = "${params.outdir}"
 
     input:
     path jsonl

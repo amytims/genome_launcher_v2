@@ -1,9 +1,12 @@
-#!/bin/bash
-#SBATCH --job-name=afgi_n_erebi
-#SBATCH --cpus-per-task=2
+#!/bin/bash -l
+#SBATCH --job-name=afgi_p_halophilus
+#SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --mem=8g
-#SBATCH --time=10:00:00
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=4g
+#SBATCH --time=1-00
+#SBATCH --account=pawsey1132
 #SBATCH --partition=work
 
 module load singularity/4.1.0-nohost
@@ -13,13 +16,16 @@ unset SBATCH_EXPORT
 # Application specific commands:
 set -eux
 
+# for debugging purposes
+printenv | grep "SLURM" > vars_in_main_script.txt
+
 # sample to run - organism grouping key
 SAMPLE_ID="Pseudomugil_sp_h_PU_2024_3240756"
 
 # sanger_tol pipeline parameters
 PIPELINE_VERSION="a6f7cb6"
 SOURCE_DIRNAME="Pseudomugil_halophilus"
-RESULT_DIRNAME="PseudomugilHalophilus3240756" 
+RESULT_DIRNAME="PseudomugilHalophilus3240756" # dataset_id for DToL pipeline - do not include underscores!
 RESULT_VERSION="v1"
 
 PIPELINE_PARAMS=(
@@ -57,7 +63,7 @@ printf "NXF_HOME: %s\n" "${NXF_HOME}"
 printf "NXF_WORK: %s\n" "${NXF_WORK}"
 
 # run launcher nextflow workflow
-bin/nextflow run main.nf -profile pawsey --BPA_API_TOKEN ${BPA_API_TOKEN} \
+nextflow run main.nf -profile pawsey --BPA_API_TOKEN ${BPA_API_TOKEN} \
     --outdir ${OUTPUT_DIRECTORY} --sample_id ${SAMPLE_ID} \
     --hic_data true --hifiadapterfilt true --read_length_summary true \
     --jsonl /home/atims/data_mapper_output_250828 \
