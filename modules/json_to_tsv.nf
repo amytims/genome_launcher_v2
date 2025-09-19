@@ -9,7 +9,7 @@ process JSON_TO_TSV {
 
     script:
     """
-    echo "organism_grouping_key\tbpa_sample_id\tlibrary_strategy\tplatform\tfile_name\tfile_checksum\turl\tbusco_lineage\tGenus_species" > reformatted_json.tsv
+    echo "organism_grouping_key\tbpa_sample_id\tlibrary_strategy\tplatform\tfile_name\tfile_checksum\turl\tbusco_lineage\tGenus_species\toptional_file" > reformatted_json.tsv
 
     cat ${jsonl} | jq -r '(. as \$r | \$r.runs[] | [
         \$r.organism.organism_grouping_key,
@@ -20,7 +20,8 @@ process JSON_TO_TSV {
         .file_checksum,
         .bioplatforms_url,
         \$r.organism.busco_dataset_name,
-        \$r.organism.scientific_name
+        \$r.organism.scientific_name,
+        .optional_file
     ]) | @tsv' >> reformatted_json.tsv
 
     """
