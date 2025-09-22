@@ -115,6 +115,7 @@ workflow {
         .filter { sample -> sample.organism_grouping_key == "${params.sample_id}" }
         .filter { sample -> sample.library_strategy == "WGS" }
         .filter { sample -> sample.platform == "PACBIO_SMRT" }
+        .filter { sample -> sample.optional_file == "false" }
         .map {sample -> [sample.organism_grouping_key, sample.file_name, sample.url, sample.file_checksum] }
 
     // if no PacBio Samples are found, throw an error and exit the process

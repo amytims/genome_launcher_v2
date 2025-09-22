@@ -63,7 +63,7 @@ printf "NXF_HOME: %s\n" "${NXF_HOME}"
 printf "NXF_WORK: %s\n" "${NXF_WORK}"
 
 # run launcher nextflow workflow
-nextflow run main.nf -profile pawsey --BPA_API_TOKEN ${BPA_API_TOKEN} \
+nextflow run main.nf -profile pawsey --bpa_api_token ${BPA_API_TOKEN} \
     --outdir ${OUTPUT_DIRECTORY} --sample_id ${SAMPLE_ID} \
     --hic_data true --hifiadapterfilt true --read_length_summary true \
     --jsonl /home/atims/data_mapper_output_250828 \
