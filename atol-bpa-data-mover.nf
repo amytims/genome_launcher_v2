@@ -1,5 +1,3 @@
-
-
 def help_file() {
     log.info """
     #######################################################################################
@@ -7,10 +5,10 @@ def help_file() {
     #######################################################################################
 
         --sample_id SAMPLE_ID
-                BPA organism grouping key of species for which to download data. Input
-                .jsonl will be filtered on this field so only files corresponding to the 
-                grouping key will be downloaded. Sample ID should be of the form 
-                'txid12345', where 12345 is the NCBI taxonomy id of the species
+                BPA organism grouping key of species for which to download data. 
+                Input .jsonl will be filtered on this field so only files corresponding 
+                to the grouping key will be downloaded. Sample ID should be of the form 
+                'taxid12345', where 12345 is the NCBI taxonomy id of the species
 
         --jsonl <PATH/TO/JSONL/FILE>
                 Path to the .jsonl file outputted by the data mapper
@@ -42,11 +40,14 @@ def help_file() {
     """.stripIndent()
 }
 
-if (params.remove('help')) {
+
+// print help file if requested
+if ( params.remove('help') ) {
     help_file()
     exit 0
 }
 
+// check no unexpected parameters
 allowed_params = [
                 "sample_id",
                 "jsonl",
@@ -54,53 +55,60 @@ allowed_params = [
                 "outdir",
                 "pacbio_data",
                 "hic_data",
-                "ont_data"
+                "ont_data",
+
+                // Pawsey options
+                "max_cpus",
+                "max_memory"
                 ]
 
 params.each { entry ->
-  if (!allowed_params.contains(entry.key)) {
-      println("The parameter <${entry.key}> is not known");
-      exit 0;
-  }
+    if ( !allowed_params.contains(entry.key) ) {
+        println("The parameter <${entry.key}> is not known");
+        exit 0;
+    }
 }
 
-if (!params.sample_id) {error(
+// check required parameters are specified; throw error if not
+if ( !params.sample_id ) { error(
     """
-    No organism grouping key provided: \'--sample_id\'
-    """
-)}
-
-if (!params.jsonl) {error(
-    """
-    No data mapper output file provided: \'--jsonl\'
+    ERROR: No organism grouping key provided: \'--sample_id\'
     """
 )}
 
-if (file(params.jsonl).!exists()) {error(
+if ( !params.jsonl ) { error(
     """
-    Data mapper output file provided by \'--jsonl\' does not exist
-    """
-)}
-
-if (!params.bpa_api_token) {error(
-    """
-    No BPA API token provided: \'--bpa_api_token\'
+    ERROR: No data mapper output file provided: \'--jsonl\'
     """
 )}
 
-if (!params.hifi_data && !params.hic_data && !params.ont_data) {error(
+if ( file(params.jsonl).!exists() ) { error(
     """
-    \'--hifi_data\', \'--hic_data\', and \'--ont_data\' flags are all set to false.
+    ERROR: Data mapper output file provided by \'--jsonl\' does not exist
+    """
+)}
+
+// some files can be downloaded without a token, but better to have one
+// amend in future if necessary
+if ( !params.bpa_api_token ) { error(
+    """
+    ERROR: No BPA API token provided: \'--bpa_api_token\'
+    """
+)}
+
+// if no data types are specified, throw error
+if ( !params.pacbio_data && !params.hic_data && !params.ont_data ) { error(
+    """
+    \'--pacbio_data\', \'--hic_data\', and \'--ont_data\' flags are all set to false.
     No data files will be downloaded. Please set at least one data flag.
     """
 )}
 
 
 include { JSON_TO_TSV } from './modules/json_to_tsv.nf'
-
-include { DOWNLOAD_FILE as DOWNLOAD_FILE_PACBIO} from './modules/download_file.nf'
-include { DOWNLOAD_FILE as DOWNLOAD_FILE_HIC} from './modules/download_file.nf'
-include { DOWNLOAD_FILE as DOWNLOAD_FILE_ONT} from './modules/download_file.nf'
+include { DOWNLOAD_FILE as DOWNLOAD_FILE_PACBIO } from './modules/download_file.nf'
+include { DOWNLOAD_FILE as DOWNLOAD_FILE_HIC } from './modules/download_file.nf'
+include { DOWNLOAD_FILE as DOWNLOAD_FILE_ONT } from './modules/download_file.nf'
 
 workflow {
 
@@ -157,7 +165,7 @@ workflow {
         hic_samples = all_samples
             .filter { sample -> sample.organism_grouping_key == "${params.sample_id}" }
             .filter { sample -> sample.library_strategy == "Hi-C" }
-            .map { sample -> [sample.organism_grouping_key, sample.file_name, sample.url] }
+            .map { sample -> [sample.organism_grouping_key, sample.file_name, sample.url, sample.file_checksum] }
 
         hic_samples.ifEmpty { error(
             """
@@ -180,7 +188,7 @@ workflow {
     //     ont_samples = all_samples
     //         .filter { sample -> sample.organism_grouping_key == "${params.sample_id}" }
     //         .filter { sample -> sample.library_strategy == "ONT" }
-    //         .map { sample -> [sample.organism_grouping_key, sample.file_name, sample.url] }
+    //         .map { sample -> [sample.organism_grouping_key, sample.file_name, sample.url, sample.file_checksum] }
 
     //     ont_samples.ifEmpty { error(
     //         """
