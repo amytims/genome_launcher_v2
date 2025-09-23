@@ -13,7 +13,7 @@ process CUTADAPT {
     def args = task.ext.args ?: ''
     """
     cutadapt --cores ${task.cpus} --anywhere 'file:${params.pacbio_adapters_fasta}' \
-        --error-rate 0.1 --overlap 25 ${args} \
+        ${args} \
         --output ${basename}.trim.fastq \
         ${fastq} \
         > ${basename}.cutadapt.log
