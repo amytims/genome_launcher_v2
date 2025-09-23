@@ -1,40 +1,51 @@
 def help_file() {
     log.info """
     #######################################################################################
-    ######################### RUN QC AND SUMMARY STATS ON RAW DATA #########################
+    ##################### RUN QC AND SUMMARY STATS ON DOWNLOADED DATA #####################
     #######################################################################################
 
-        --sample_id SAMPLE_ID
-                BPA organism grouping key of species for which to download data. 
-                Input .jsonl will be filtered on this field so only files corresponding 
-                to the grouping key will be downloaded. Sample ID should be of the form 
-                'taxid12345', where 12345 is the NCBI taxonomy id of the species
-
-        --jsonl <PATH/TO/JSONL/FILE>
-                Path to the .jsonl file outputted by the data mapper
-
-        --bpa_api_token BPA_API_TOKEN
-                API token for BioPlatforms Australia, enables downloading of datasets
-                that may not be publically accessible. Token can be created by logging 
-                into https://data.bioplatforms.com/, then going to
-                https://data.bioplatforms.com/user/<username>/api-tokens, and clicking 
-                'Create API Token'. 
-
+        --indir <PATH/TO/INPUT/DIRECTORY>
+                File path to directory containing raw_reads directory where the output
+                of atol-bpa-data-mover.nf is stored
+                Default is './results'
+        
         --outdir <PATH/TO/OUTPUT/DIRECTORY>
                 File path to where results should be stored
                 Default is './results'
 
         --pacbio_data
-                Does the sample_id have PacBio HiFi data files to download, or not?
+                Are there PacBio HiFi data files to run, or not?
                 Default is 'false'
 
         --hic_data
-                Does the sample_id have HiC data files to download, or not?
+                Are there HiC data files to run, or not?
                 Default is 'false'
 
         --ont_data
-                Does the sample_id have Oxford Nanopore data files to download, or not?
+                Are there Oxford Nanopore data files to run, or not?
                 Default is 'false'
+
+        --filter_pacbio_adapters
+                Run cutadapt on pacbio data to filter residual adapters?
+                Default is 'true'
+                
+                Following Hanrahan et al. 2025 (doi.org/10.1093/g3journal/jkaf046),
+                cutadapt is run with the following parameters: 
+                    --error-rate 0.1 
+                    --overlap 25 
+                    --match-read-wildcards 
+                    --revcomp 
+                    --discard-trimmed
+
+                To change this, edit the ext.args line in atol-qc-raw-read.config
+
+        --pacbio_adapters_fasta
+                Path to .fasta file containing PacBio HiFi adapters to filter
+                Default is 'assets/pacbio_adapters.fa'
+
+        --read_length_summary
+                Plot read length distribution summary and calculate stats?
+                Default is 'true'
 
     #######################################################################################
     """.stripIndent()
@@ -50,14 +61,15 @@ if ( params.remove('help') ) {
 // check no unexpected parameters were specified
 allowed_params = [
     // pipeline inputs
+    "indir"
     "outdir",
     "pacbio_data",
     "hic_data",
     "ont_data",
 
-"filter_pacbio_adapters",
-"pacbio_adapters_fasta",
-"read_length_summary",
+    "filter_pacbio_adapters",
+    "pacbio_adapters_fasta",
+    "read_length_summary",
 
     // Pawsey options
     "max_cpus",
@@ -84,7 +96,7 @@ workflow {
     // process any pacbio data
     if ( params.pacbio_data ) {
         
-        pacbio_samples_ch = Channel.fromPath("${params.outdir}/raw_reads/hifi")
+        pacbio_samples_ch = Channel.fromPath("${params.indir}/raw_reads/hifi")
         pacbio_samples_ch.view()
 
         // filter adapters if desired
@@ -96,7 +108,7 @@ workflow {
         // sumarize read lengths if desired
         if ( params.read_length_summary ) {
 
-            if ( params.filter_adapters ) {
+            if ( params.filter_pacbio_adapters ) {
                 read_length_summary_ch = CUTADAPT.out.filt_fastq_gz
             } else {
                 read_length_summary_ch = pacbio_samples_ch
@@ -110,7 +122,7 @@ workflow {
         }
 
         // concat pacbio reads and convert to fasta.gz output
-        if ( params.filter_adapters ) {
+        if ( params.filter_pacbio_adapters ) {
             concat_and_zip_ch = CUTADAPT.out.filt_fastq_gz.collect()
         } else {
             concat_and_zip_ch = pacbio_samples_ch.collect()
