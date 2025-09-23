@@ -25,15 +25,15 @@ def help_file() {
                 Default is './results'
 
         --pacbio_data
-                Does the sample_id have corresponding PacBio HiFi data, or not?
+                Does the sample_id have PacBio HiFi data files to download, or not?
                 Default is 'false'
 
         --hic_data
-                Does the sample_id have corresponding HiC data, or not?
+                Does the sample_id have HiC data files to download, or not?
                 Default is 'false'
 
         --ont_data
-                Does the sample_id have corresponding Oxford Nanopore data, or not?
+                Does the sample_id have Oxford Nanopore data files to download, or not?
                 Default is 'false'
 
     #######################################################################################
@@ -47,20 +47,21 @@ if ( params.remove('help') ) {
     exit 0
 }
 
-// check no unexpected parameters
+// check no unexpected parameters were specified
 allowed_params = [
-                "sample_id",
-                "jsonl",
-                "bpa_api_token",
-                "outdir",
-                "pacbio_data",
-                "hic_data",
-                "ont_data",
+    // pipeline inputs
+    "sample_id",
+    "jsonl",
+    "bpa_api_token",
+    "outdir",
+    "pacbio_data",
+    "hic_data",
+    "ont_data",
 
-                // Pawsey options
-                "max_cpus",
-                "max_memory"
-                ]
+    // Pawsey options
+    "max_cpus",
+    "max_memory"
+]
 
 params.each { entry ->
     if ( !allowed_params.contains(entry.key) ) {
@@ -99,17 +100,19 @@ if ( !params.bpa_api_token ) { error(
 // if no data types are specified, throw error
 if ( !params.pacbio_data && !params.hic_data && !params.ont_data ) { error(
     """
-    \'--pacbio_data\', \'--hic_data\', and \'--ont_data\' flags are all set to false.
+    ERROR: \'--pacbio_data\', \'--hic_data\', and \'--ont_data\' flags are all turned off.
     No data files will be downloaded. Please set at least one data flag.
     """
 )}
 
-
+// pull in scripts for relevant processes
 include { JSON_TO_TSV } from './modules/json_to_tsv.nf'
 include { DOWNLOAD_FILE as DOWNLOAD_FILE_PACBIO } from './modules/download_file.nf'
 include { DOWNLOAD_FILE as DOWNLOAD_FILE_HIC } from './modules/download_file.nf'
 include { DOWNLOAD_FILE as DOWNLOAD_FILE_ONT } from './modules/download_file.nf'
 
+
+// actually run the workflow
 workflow {
 
     // ################################
