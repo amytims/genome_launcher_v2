@@ -69,6 +69,16 @@ nextflow run atol-bpa-data-mover.nf -c atol-bpa-data-mover.config -profile pawse
     --jsonl /home/atims/data_mapper_output_250919 \
     --bpa_api_token ${BPA_API_TOKEN} 
 exit 0
+
+# run bpa-qc-raw-read on pacbio data
+nextflow run atol-qc-raw-read.nf -c atol-qc-raw-read.config -profile pawsey \
+    --indir ${OUTPUT_DIRECTORY} \
+    --outdir ${OUTPUT_DIRECTORY} \
+    --pacbio_data \
+    --filter_pacbio_adapters false \
+    --read_length_summary false \
+
+exit 0
  
 # # check assembly pipeline before running
 # nextflow \
