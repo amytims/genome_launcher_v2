@@ -24,7 +24,7 @@ SAMPLE_ID="taxid3240756"
 
 # # sanger_tol pipeline parameters
 # PIPELINE_VERSION="a6f7cb6"
-# SOURCE_DIRNAME="Pseudomugil_halophilus"
+SOURCE_DIRNAME="Pseudomugil_halophilus"
 # RESULT_DIRNAME="PseudomugilHalophilus3240756" # dataset_id for DToL pipeline - do not include underscores!
 # RESULT_VERSION="v1"
 
@@ -40,7 +40,7 @@ SAMPLE_ID="taxid3240756"
 
 # where to put the results files
 #OUTPUT_DIRECTORY="s3://pawsey1132.afgi.assemblies/${RESULT_DIRNAME}/results/sanger_tol"
-OUTPUT_DIRECTORY="results_${SAMPLE_ID}"
+OUTPUT_DIRECTORY="results"
 
 # where to put singularity files
 if [ -z "${SINGULARITY_CACHEDIR}" ]; then
