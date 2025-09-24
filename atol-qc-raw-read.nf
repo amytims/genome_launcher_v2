@@ -5,12 +5,12 @@ def help_file() {
     #######################################################################################
 
         --indir <PATH/TO/INPUT/DIRECTORY>
-                File path to directory containing raw_reads directory where the output
-                of atol-bpa-data-mover.nf is stored
-                Default is './results'
+                File path to raw_reads directory where the output of 
+                atol-bpa-data-mover.nf is stored
+                Default is './results/raw_reads'
         
         --outdir <PATH/TO/OUTPUT/DIRECTORY>
-                File path to where results should be stored
+                File path to where processed reads and QC results should be stored
                 Default is './results'
 
         --pacbio_data
@@ -61,7 +61,7 @@ if ( params.remove('help') ) {
 // check no unexpected parameters were specified
 allowed_params = [
     // pipeline inputs
-    "indir"
+    "indir",
     "outdir",
     "pacbio_data",
     "hic_data",
@@ -96,13 +96,13 @@ workflow {
     // process any pacbio data
     if ( params.pacbio_data ) {
         
-        pacbio_samples_ch = Channel.fromPath("${params.indir}/raw_reads/hifi")
+        pacbio_samples_ch = Channel.fromPath("${params.indir}/hifi/*")
         pacbio_samples_ch.view()
 
         // filter adapters if desired
         if ( params.filter_pacbio_adapters ) {
             BAM_TO_FASTQ(pacbio_samples_ch)
-            CUTADAPT(BAM_TO_FASTQ.out.fastq)
+            CUTADAPT(BAM_TO_FASTQ.out.fastq, "${params.pacbio_adapters_fasta}")
         }
 
         // sumarize read lengths if desired
@@ -123,11 +123,11 @@ workflow {
 
         // concat pacbio reads and convert to fasta.gz output
         if ( params.filter_pacbio_adapters ) {
-            concat_and_zip_ch = CUTADAPT.out.filt_fastq_gz.collect()
+            concat_pacbio_reads_ch = CUTADAPT.out.filt_fastq_gz.collect()
         } else {
-            concat_and_zip_ch = pacbio_samples_ch.collect()
+            concat_pacbio_reads_ch = pacbio_samples_ch.collect()
         }
 
-        CONCAT_AND_ZIP(concat_and_zip_ch)
+        CONCAT_PACBIO_READS(concat_pacbio_reads_ch)
     }
 }

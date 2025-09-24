@@ -76,8 +76,7 @@ nextflow run atol-qc-raw-read.nf -c atol-qc-raw-read.config -profile pawsey \
     --outdir ${OUTPUT_DIRECTORY} \
     --pacbio_data \
     --filter_pacbio_adapters false \
-    --read_length_summary false \
-
+    --read_length_summary false
 exit 0
  
 # # check assembly pipeline before running
