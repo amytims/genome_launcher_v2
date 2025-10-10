@@ -7,7 +7,10 @@ process READ_LENGTH_SUMMARY {
 
     script:
     basename=input_file.getBaseName(input_file.name.endsWith('.gz')? 2: 1)
-    if ( params.hifiadapterfilt == "true" )
+    if ( params.filter_pacbio_adapters )
+    // can do seqkit on the filt_fastq_gz from cutadapt to get length distro and GC content
+    //
+
         """
         zcat $input_file | awk '{if(NR%4==2) print length}' > "${basename}_read_lengths.txt"
 
