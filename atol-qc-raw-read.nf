@@ -13,6 +13,11 @@ def help_file() {
                 File path to where processed reads and QC results should be stored
                 Default is './results'
 
+        --sample_id SAMPLE_ID
+                Sample name for the species. For BPA data, this should be the BPA 
+                organism grouping key of the species, of the form 
+                'taxid12345', where 12345 is the NCBI taxonomy id of the species
+
         --pacbio_data
                 Are there PacBio HiFi data files to run, or not?
                 Default is 'false'
@@ -47,6 +52,15 @@ def help_file() {
                 Plot read length distribution summary and calculate stats?
                 Default is 'true'
 
+        --plot_title
+                Title of summary plot. Can be changed to include species name
+                Default is 'Read Length Distribution'
+        --R
+                TO BE REPLACED WITH A CONTAINER
+                Name of R module file to load.
+                Default is 'r/4.4.1'
+
+
     #######################################################################################
     """.stripIndent()
 }
@@ -63,6 +77,7 @@ allowed_params = [
     // pipeline inputs
     "indir",
     "outdir",
+    "sample_id",
     "pacbio_data",
     "hic_data",
     "ont_data",
@@ -70,6 +85,8 @@ allowed_params = [
     "filter_pacbio_adapters",
     "pacbio_adapters_fasta",
     "read_length_summary",
+    "plot_title",
+    "R",
 
     // Pawsey options
     "max_cpus",
@@ -89,6 +106,7 @@ include { CUTADAPT } from './modules/cutadapt.nf'
 include { READ_LENGTH_SUMMARY } from './modules/read_length_summary.nf'
 include { PLOT_READ_LENGTHS } from './modules/plot_read_length_summary.nf'
 include { CONCAT_PACBIO_READS } from './modules/concat_pacbio_reads.nf'
+include { CONCAT_HIC_READS } from './modules/concat_hic_reads.nf'
 
 
 // 
@@ -97,7 +115,7 @@ workflow {
     if ( params.pacbio_data ) {
         
         pacbio_samples_ch = Channel.fromPath("${params.indir}/hifi/*")
-        pacbio_samples_ch.view()
+        //pacbio_samples_ch.view()
 
         // filter adapters if desired
         if ( params.filter_pacbio_adapters ) {
@@ -130,4 +148,20 @@ workflow {
 
         CONCAT_PACBIO_READS(concat_pacbio_reads_ch)
     }
+
+
+    // process any hi-c data
+    if ( params.hic_data ) {
+        
+        hic_samples_ch = Channel.fromPath("${params.indir}/hic/*")
+        //hic_samples_ch.view()
+
+
+        // this will get swapped out for a QC process at some point
+        concat_hic_reads_ch = hic_samples_ch.collect()
+
+        CONCAT_HIC_READS(concat_hic_reads_ch)
+
+    }
+
 }
