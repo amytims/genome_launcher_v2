@@ -10,8 +10,16 @@ def help_file() {
                 to the grouping key will be downloaded. Sample ID should be of the form 
                 'taxid12345', where 12345 is the NCBI taxonomy id of the species
 
+        --use_samplesheet
+                Pull data from a samplesheet rather than a data mapper output file?
+                Default is 'false'
+
         --jsonl <PATH/TO/JSONL/FILE>
                 Path to the .jsonl file outputted by the data mapper
+
+        --samplesheet <PATH/TO/SAMPLESHEET>
+                Path to a samplesheet with download URLS in. See assets/samplesheet.csv
+                for an example
 
         --bpa_api_token BPA_API_TOKEN
                 API token for BioPlatforms Australia, enables downloading of datasets
@@ -51,7 +59,9 @@ if ( params.remove('help') ) {
 allowed_params = [
     // pipeline inputs
     "sample_id",
+    "use_samplesheet",
     "jsonl",
+    "samplesheet",
     "bpa_api_token",
     "outdir",
     "pacbio_data",
@@ -77,15 +87,28 @@ if ( !params.sample_id ) { error(
     """
 )}
 
-if ( !params.jsonl ) { error(
+if ( !params.use_samplesheet && !params.jsonl ) { error(
     """
     ERROR: No data mapper output file provided: \'--jsonl\'
     """
 )}
 
-if ( file(params.jsonl).!exists() ) { error(
+if ( !params.use_samplesheet && !file(params.jsonl).exists() ) { error(
     """
     ERROR: Data mapper output file provided by \'--jsonl\' does not exist
+    """
+)}
+
+if ( params.use_samplesheet && !params.samplesheet ) { error(
+    """
+    ERROR: Samplesheet mode selected (\'--use_samplesheet\'), but 
+    no samplesheet file provided: \'--samplesheet\'
+    """
+)}
+
+if ( params.use_samplesheet && !file(params.samplesheet).exists() ) { error(
+    """
+    ERROR: Samplesheet file provided by \'--samplesheet\' does not exist
     """
 )}
 
@@ -119,31 +142,47 @@ workflow {
     // ### getting lists of samples ###
     // ################################
 
-    // set up channel for input jsonl file
-    json_to_tsv_ch = Channel.fromPath(params.jsonl)
 
-    // parse it to tsv format for legibility
-    JSON_TO_TSV(json_to_tsv_ch)
+    if ( !params.use_samplesheet ) {
+        // set up channel for input jsonl file
+        json_to_tsv_ch = Channel.fromPath(params.jsonl)
 
-    // read in all the rows of the new tsv file
-    all_samples = JSON_TO_TSV.out.tsv
-        .splitCsv(header:true, sep:'\t')
-        //.view()
+        // parse it to tsv format for legibility
+        JSON_TO_TSV(json_to_tsv_ch)
 
+        // read in all the rows of the new tsv file
+        all_samples = JSON_TO_TSV.out.tsv
+            .splitCsv(header:true, sep:'\t')
+            //.view()
+
+    } else {
+        all_samples = Channel.fromPath( params.samplesheet )
+            .splitCsv(header:true)
+    }
+    
     // ##################################################
     // ### get pacbio reads for sample_id of interest ###
     // ##################################################
 
     if ( params.pacbio_data ) {
 
-        pacbio_samples = all_samples
-            .filter { sample -> sample.organism_grouping_key == "${params.sample_id}" } // keeps only the samples for the species we want
-            .filter { sample -> sample.platform == "PACBIO_SMRT" } // keeps only the PacBio samples
-            .filter { sample -> sample.library_strategy == "WGS" } // keeps only the WGS ones - filters out longread RNA-seq 
-                    // NOTE: also filters out a few samples with WGA library strategy
-                    // if we want to keep these, maybe instead filter on "library_source: GENOMIC"
-            .filter { sample -> sample.optional_file == "false" } // filters out any .subreads.bam files
-            .map {sample -> [sample.organism_grouping_key, sample.file_name, sample.url, sample.file_checksum] }
+        if ( !params.use_samplesheet ) {
+
+            pacbio_samples = all_samples
+                .filter { sample -> sample.organism_grouping_key == "${params.sample_id}" } // keeps only the samples for the species we want
+                .filter { sample -> sample.platform == "PACBIO_SMRT" } // keeps only the PacBio samples
+                .filter { sample -> sample.library_strategy == "WGS" } // keeps only the WGS ones - filters out longread RNA-seq 
+                        // NOTE: also filters out a few samples with WGA library strategy
+                        // if we want to keep these, maybe instead filter on "library_source: GENOMIC"
+                .filter { sample -> sample.optional_file == "false" } // filters out any .subreads.bam files
+                .map {sample -> [sample.organism_grouping_key, sample.file_name, sample.url, sample.file_checksum] }
+
+        } else {
+            pacbio_samples = all_samples
+                .filter { sample -> sample.sample_id == "${params.sample_id}" }
+                .filter { sample -> sample.data_type == "PACBIO" }
+                .map {sample -> [sample.sample_id, sample.file_name, sample.url, sample.file_checksum] }
+        }
 
         // if no PacBio Samples are found, throw an error and exit the process
         pacbio_samples.ifEmpty { error(
@@ -165,10 +204,22 @@ workflow {
     // ###############################################
 
     if ( params.hic_data ) {
-        hic_samples = all_samples
-            .filter { sample -> sample.organism_grouping_key == "${params.sample_id}" }
-            .filter { sample -> sample.library_strategy == "Hi-C" }
-            .map { sample -> [sample.organism_grouping_key, sample.file_name, sample.url, sample.file_checksum] }
+
+        if ( !params.use_samplesheet ) {
+
+            hic_samples = all_samples
+                .filter { sample -> sample.organism_grouping_key == "${params.sample_id}" }
+                .filter { sample -> sample.library_strategy == "Hi-C" }
+                .map { sample -> [sample.organism_grouping_key, sample.file_name, sample.url, sample.file_checksum] }
+
+        } else {
+
+            hic_samples = all_samples
+                .filter { sample -> sample.sample_id == "${params.sample_id}" }
+                .filter { sample -> sample.data_type == "Hi-C" }
+                .map {sample -> [sample.sample_id, sample.file_name, sample.url, sample.file_checksum] }
+                
+        }
 
         hic_samples.ifEmpty { error(
             """
