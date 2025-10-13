@@ -20,7 +20,7 @@ set -eux
 printenv | grep "SLURM" > vars_in_main_script.txt
 
 # sample to run - organism grouping key
-SAMPLE_ID="GadopsisMarmoratus135757"
+SAMPLE_ID="GadopsisMarmoratus135755"
 
 # # sanger_tol pipeline parameters
 # PIPELINE_VERSION="a6f7cb6"

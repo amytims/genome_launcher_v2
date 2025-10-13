@@ -93,7 +93,7 @@ if ( !params.use_samplesheet && !params.jsonl ) { error(
     """
 )}
 
-if ( !params.use_samplesheet && file(params.jsonl).!exists() ) { error(
+if ( !params.use_samplesheet && !file(params.jsonl).exists() ) { error(
     """
     ERROR: Data mapper output file provided by \'--jsonl\' does not exist
     """
@@ -106,7 +106,7 @@ if ( params.use_samplesheet && !params.samplesheet ) { error(
     """
 )}
 
-if ( params.use_samplesheet && file(params.samplesheet).!exists() ) { error(
+if ( params.use_samplesheet && !file(params.samplesheet).exists() ) { error(
     """
     ERROR: Samplesheet file provided by \'--samplesheet\' does not exist
     """
@@ -156,10 +156,10 @@ workflow {
             //.view()
 
     } else {
-        Channel.fromPath( ${params.samplesheet} )
+        all_samples = Channel.fromPath( params.samplesheet )
             .splitCsv(header:true)
-            .set(all_samples)
     }
+    
     // ##################################################
     // ### get pacbio reads for sample_id of interest ###
     // ##################################################
@@ -214,7 +214,7 @@ workflow {
 
         } else {
 
-            hic_samples =  = all_samples
+            hic_samples = all_samples
                 .filter { sample -> sample.sample_id == "${params.sample_id}" }
                 .filter { sample -> sample.data_type == "Hi-C" }
                 .map {sample -> [sample.sample_id, sample.file_name, sample.url, sample.file_checksum] }
