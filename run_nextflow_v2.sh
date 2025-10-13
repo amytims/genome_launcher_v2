@@ -20,11 +20,11 @@ set -eux
 printenv | grep "SLURM" > vars_in_main_script.txt
 
 # sample to run - organism grouping key
-SAMPLE_ID="taxid3240756"
+SAMPLE_ID="GadopsisMarmoratus135757"
 
 # # sanger_tol pipeline parameters
 # PIPELINE_VERSION="a6f7cb6"
-SOURCE_DIRNAME="Pseudomugil_halophilus"
+SOURCE_DIRNAME="Gadopsis_marmoratus"
 # RESULT_DIRNAME="PseudomugilHalophilus3240756" # dataset_id for DToL pipeline - do not include underscores!
 # RESULT_VERSION="v1"
 
@@ -62,11 +62,22 @@ export NXF_WORK="${NXF_CACHE_DIR}/work"
 printf "NXF_HOME: %s\n" "${NXF_HOME}"
 printf "NXF_WORK: %s\n" "${NXF_WORK}"
 
+## run bpa-data-mover
+#nextflow run atol-bpa-data-mover.nf -c atol-bpa-data-mover.config -profile pawsey \
+#    --outdir ${OUTPUT_DIRECTORY} \
+#    --sample_id ${SAMPLE_ID} \
+#    --jsonl /home/atims/data_mapper_output_250919 \
+#    --bpa_api_token ${BPA_API_TOKEN} 
+#exit 0
+
 # run bpa-data-mover
 nextflow run atol-bpa-data-mover.nf -c atol-bpa-data-mover.config -profile pawsey \
     --outdir ${OUTPUT_DIRECTORY} \
     --sample_id ${SAMPLE_ID} \
-    --jsonl /home/atims/data_mapper_output_250919 \
+    --use_samplesheet \
+    --samplesheet test_samplesheet.csv \
+    --pacbio_data \
+    --hic_data \
     --bpa_api_token ${BPA_API_TOKEN} 
 exit 0
 
