@@ -17,7 +17,7 @@ unset SBATCH_EXPORT
 set -eux
 
 # for debugging purposes
-printenv | grep "SLURM" > vars_in_main_script.txt
+#printenv | grep "SLURM" > vars_in_main_script.txt
 
 # sample to run - organism grouping key
 SAMPLE_ID="GadopsisMarmoratus135755"
@@ -28,19 +28,19 @@ SOURCE_DIRNAME="Gadopsis_marmoratus"
 # RESULT_DIRNAME="PseudomugilHalophilus3240756" # dataset_id for DToL pipeline - do not include underscores!
 # RESULT_VERSION="v1"
 
-# PIPELINE_PARAMS=(
-#         "--input" "results/config/config_file.yaml"
-#         "--outdir" "s3://pawsey1132.afgi.assemblies/${RESULT_DIRNAME}/results/sanger_tol"
-#         "--timestamp" "${RESULT_VERSION}"
-#         "--hifiasm_hic_on"
-#         "-profile" "singularity,pawsey"
-#         "-r" "${PIPELINE_VERSION}"
-#         "-c" "sangertol_nf.config"
-# )
+PIPELINE_PARAMS=(
+        "--input" "results/config/config_file.yaml"
+        "--outdir" "s3://pawsey1132.afgi.assemblies/${RESULT_DIRNAME}/results/sanger_tol"
+        "--timestamp" "${RESULT_VERSION}"
+        "--hifiasm_hic_on"
+        "-profile" "singularity,pawsey"
+        "-r" "${PIPELINE_VERSION}"
+        "-c" "sangertol_nf.config"
+)
 
 # where to put the results files
 #OUTPUT_DIRECTORY="s3://pawsey1132.afgi.assemblies/${RESULT_DIRNAME}/results/sanger_tol"
-OUTPUT_DIRECTORY="results"
+OUTPUT_DIRECTORY="s3://pawsey1132.afgi.assemblies/${RESULT_DIRNAME}/results"
 
 # where to put singularity files
 if [ -z "${SINGULARITY_CACHEDIR}" ]; then
@@ -58,7 +58,7 @@ printf "nextflow: %s\n" "$( readlink -f $( which nextflow ) )"
 # set the NXF home for plugins etc
 export NXF_HOME="/software/projects/pawsey1132/atims/assembly_testing/${SOURCE_DIRNAME}/.nextflow"
 export NXF_CACHE_DIR="/scratch/pawsey1132/atims/assembly_testing/${SOURCE_DIRNAME}/.nextflow"
-export NXF_WORK="${NXF_CACHE_DIR}/work"
+export NXF_WORK="${PWD}/work"
 printf "NXF_HOME: %s\n" "${NXF_HOME}"
 printf "NXF_WORK: %s\n" "${NXF_WORK}"
 
@@ -81,13 +81,23 @@ nextflow run atol-bpa-data-mover.nf -c atol-bpa-data-mover.config -profile pawse
     --bpa_api_token ${BPA_API_TOKEN} 
 exit 0
 
+#nextflow run atol-bpa-data-mover.nf -c atol-bpa-data-mover.config -profile pawsey \
+#    --outdir ${OUTPUT_DIRECTORY} \
+#    --sample_id ${SAMPLE_ID} \
+#    --jsonl /home/atims/data_mapper_output_250919 \
+#    --bpa_api_token ${BPA_API_TOKEN} 
+#exit 0
+
 # run bpa-qc-raw-read on pacbio data
 nextflow run atol-qc-raw-read.nf -c atol-qc-raw-read.config -profile pawsey \
-    --indir ${OUTPUT_DIRECTORY} \
     --outdir ${OUTPUT_DIRECTORY} \
     --pacbio_data \
-    --filter_pacbio_adapters false \
-    --read_length_summary false
+    --hic_data \
+    --filter_pacbio_adapters true \
+    --read_length_summary true \
+    --sample_id ${SAMPLE_ID} \
+    --plot_title "${SAMPLE_ID} Read Length Distribution" \
+    -resume
 exit 0
  
 # # check assembly pipeline before running

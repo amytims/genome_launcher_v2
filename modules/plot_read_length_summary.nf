@@ -13,6 +13,6 @@ process PLOT_READ_LENGTHS {
     echo \${PWD}
     cat *_read_lengths.txt > read_lengths.txt
 
-    Rscript ${projectDir}/scripts/read_lengths.R \${PWD} ${params.sample_id}
+    Rscript ${projectDir}/scripts/read_lengths.R \${PWD} "${params.plot_title}"
     """
 }

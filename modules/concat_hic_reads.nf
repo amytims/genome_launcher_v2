@@ -1,5 +1,5 @@
 process CONCAT_HIC_READS {
-    publishDir "${params.outdir}/reads/hic", mode: 'copy'
+    publishDir "${params.outdir}/processed_reads/hic", mode: 'copy'
 
     input:
         path "*"
@@ -22,7 +22,7 @@ process CONCAT_HIC_READS {
 
         wait
 
-        samtools import -@${task.cpus} hic_merged_R1.fastq.gz hic_merged_R2.fastq.gz \
+        samtools import -@${task.cpus-1} hic_merged_R1.fastq.gz hic_merged_R2.fastq.gz \
         -r ID:${params.sample_id} \
         -r CN:"arima" \
         -r PU:${params.sample_id} \
@@ -34,7 +34,7 @@ process CONCAT_HIC_READS {
 
     else
 
-        samtools import -@${task.cpus} *_R1_*.fastq.gz *_R2_*.fastq.gz \
+        samtools import -@${task.cpus-1} *_R1_*.fastq.gz *_R2_*.fastq.gz \
         -r ID:${params.sample_id} \
         -r CN:"arima" \
         -r PU:${params.sample_id} \

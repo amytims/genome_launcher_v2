@@ -17,6 +17,6 @@ process CONCAT_PACBIO_READS {
         """
     else
         """
-        samtools cat *.bam | samtools fasta -@${task.cpus-1} -0 ccs_reads.fasta.gz
+        samtools cat *.bam | samtools fasta -@${task.cpus-1} -0 "${params.sample_id}_ccs_reads.fasta.gz"
         """
 }
